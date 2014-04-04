@@ -1,0 +1,23 @@
+common electrons,Te0,Teh0,fh,Teh0_1,fh_1
+common ions, Ti0,Tsp0,Ts2p0,Ts3p0,Ts4p0,Top0,To2p0,Tsph0,Toph0
+common rates,trans,s_source,o_source,net_source,otos,net_source_1,$
+             otos_1,trans_1
+common widgets,wefh_lbl,wefh,wotos,wotos_lbl,wrt,wtrans,wtrans_lbl,$
+               wrt_lbl,wnsrc,wnsrc_lbl,wcont,wsp,ws2p,ws3p,wop,wo2p, $
+               wpltden,wplttmp,wpltdist,wpltpwr
+common info,runt,cont,dt0,ntm,dt,ft_ave,nintrvl,dt_trans,dL,Lvol,nbox,bufcel,$
+            n_theta, theta_off, zoff, n_width, ntheta_off
+common view,vcomp,pln,slcxy,slcxz,slcyz,frm,tot_icld,icld,tot_arr,arr,$
+            wxy,wxz,wyz,wfrm,wclr,wnlev,nfrm
+common graph,graph_type,graph_type_prev,anmt_arr,vclr,nlev,ntype
+common ranges,minx,maxx,miny,maxy,minz,maxz,max_theta,Lshell
+common sizer,wmnx,wmxx,wmny,wmxy,wmnz,wmxz
+common ps,psfile,prt,lnd,encp,noencp,clr,nclr,numclr,ysz
+common windows,draw_citep,draw,draw_src
+common initden,ns0,no0,nsp0,ns2p0,ns3p0,ns4p0,nop0,no2p0,nel0,nelh0,nsph0,noph0
+common chem,k0,k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16
+common pmult,rows,cols
+common legend,lonoff
+common useprev,upsp,ups2p,ups3p,upop,upo2p
+common plot,plot_density,plot_temperature
+common best_fit,densflg

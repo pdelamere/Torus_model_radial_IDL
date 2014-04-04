@@ -1,0 +1,15 @@
+retall
+;.run cm3_ftave
+;.run cm3_v1.3
+.run cm3_lat_avg_v1.4
+.run cm3_schght
+.run cm3_to_nl2
+.run cfit
+;.run read_emission_tables
+.run read_emission_tables_4.2.pro
+.run read_nl2_bagenal
+.run cm3_radial
+.run reaction_rates
+.run find_best_fit
+;cm3_radial
+
