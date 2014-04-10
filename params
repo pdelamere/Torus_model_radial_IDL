@@ -1,13 +1,13 @@
 dt0 = 10000.0  ;cm3 time step
 runt = 1*dt0   ;cm3 iterations
-nit = 1500       ;total iterations
+nit = 500       ;total iterations
 dt_trans = dt0/1000.
 
 
-nbox = 13*2      ;number of cm3 boxes
+nbox = 30   ;number of cm3 boxes
 dL0 = 0.25/2     ;dL
-theta_off = 3.5*!dtor  ;neutral cloud offset
-n_width = 1.0          ;neutral cloud width
+theta_off = 0.0*!dtor  ;neutral cloud offset
+n_width = 5.0          ;neutral cloud width
 fh = 0.0025            ;fh (L = 6.0)
 fh_alpha = 4.3          ;fh power law
 fh_max = 0.5           ;fh max
@@ -17,14 +17,14 @@ Teh0_alpha = 5.5    ;Teh power law
 Teh0_max = 400.     ;Teh max
 
 
-net_source = 0.775e28    ;net source #/s
+net_source = 0.475e28    ;net source #/s
 
 net_source_alpha = 12.4  ;power law for extended neutral source
 flocal = 0.           ;local fraction
 fextend = 1.0          ;extended fraction
 
-DLL_0 = 3.7e-7         ;DLL (L = 6.0)
-DLL_alpha = 4.8        ;DLL power law
+DLL_0 = 8.2e-7         ;DLL (L = 6.0)
+DLL_alpha = 5.8        ;DLL power law
 
 otos = 1.8    ;O/S ratio
 

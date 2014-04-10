@@ -479,6 +479,227 @@ end
 
 
 ;------------------------------------------------------------------
+pro Lax_Wend,n,v,x,dt ;cylindrical coords
+;------------------------------------------------------------------
+
+f = n*v
+
+n1 = fltarr(n_elements(n))
+f1 = fltarr(n_elements(n))
+dx = fltarr(n_elements(n))
+
+for i = 0,n_elements(n)-2 do begin
+
+   dx(i) = x(i+1)-x(i)
+   x2 = 0.5*(x(i+1)+x(i))
+   n1(i) = 0.5*(n(i) + n(i+1)) - (dt/(2*dx(i)*x2))*(x(i+1)*f(i+1) - x(i)*f(i))
+   f1(i) = n1(i)*0.5*(v(i+1)+v(i))
+
+endfor
+
+
+for i = 1,n_elements(n)-1 do begin
+   x2 = 0.5*(x(i)+x(i-1))
+   n(i) = n(i) - (dt/(dx(i)*x2))*(x(i)*f1(i) - x(i-1)*f1(i-1))
+endfor
+
+
+return
+end
+;------------------------------------------------------------------
+
+
+
+;------------------------------------------------------------------
+pro Lax_Wend_E,n,v,x,dt ;cylindrical coords
+;------------------------------------------------------------------
+
+f = n*v
+gamma = 5./3.
+
+n1 = fltarr(n_elements(n))
+f1 = fltarr(n_elements(n))
+dx = fltarr(n_elements(n))
+
+for i = 0,n_elements(n)-2 do begin
+
+   dx(i) = x(i+1)-x(i)
+   x2 = 0.5*(x(i+1)+x(i))
+   n1(i) = 0.5*(n(i) + n(i+1)) - (dt/(2*dx(i)*x2))*(x(i+1)*f(i+1) - x(i)*f(i)) - $
+           (gamma-1)*0.5*(n(i+1)+n(i))*(dt/(2*dx(i)*x2))*(x(i+1)*v(i+1) - x(i)*v(i))
+   f1(i) = n1(i)*0.5*(v(i+1)+v(i))
+          
+endfor
+
+
+for i = 1,n_elements(n)-1 do begin
+   x2 = x(i)
+;   xp = 0.5*(x(i)+x(i+1))
+   xm = 0.5*(x(i)+x(i-1))
+   xp = x(i) + (x(i)-xm)
+   dx(i) = xp-xm
+   n(i) = n(i) - (dt/(dx(i)*x2))*(xp*f1(i) - xm*f1(i-1)) - $
+          (gamma-1)*0.5*n(i)*(dt/(2*dx(i)*x2))*(xp*v(i+1) - xm*v(i))          
+endfor
+
+
+return
+end
+;------------------------------------------------------------------
+
+
+
+
+;------------------------------------------------------------------
+pro transport_flux,nr,tr,DLL_0,DLL_alpha,H,mdot               
+;pro transport_NL2,nl2,nl2e
+;------------------------------------------------------------------
+@common
+;@params
+
+xsz = n_elements(nr)
+
+;print,H
+
+tbndry_out = 200.0 ;eV
+tbndry_in = 70.0
+Lo = 6.0
+L = [Lshell(0)-dL(0),Lshell,Lshell(nintrvl-1)+dL(nintrvl-1)]
+dL2 = L(1)-L(0)
+Lp = L + dL2
+
+dll = fltarr(n_elements(L))
+dll = DLL_0*(Lp/Lo)^DLL_alpha
+
+dL = shift(L,-1)-L
+dL(0) = dL(1)
+;dL(nintrvl-2)=dL(nintrvl-3) 
+;dL(nintrvl)=dL(nintrvl-1) 
+sz = size(dL)
+dL(sz(1)-1) = dL(sz(1)-2)
+v = dll*(dL)
+
+
+r = 2*!pi*Lshell*7.14e7
+mp = 1.67e-27
+mdot = (sqrt(!pi)/2)*r*1e6*mp*v*7.14e7*1000.*(H.sp*nr.nsp*32 + H.s2p*nr.ns2p*32 + H.s3p*nr.ns3p*32 + $
+                                H.op*nr.nop*16 + H.o2p*nr.no2p*16)
+
+
+;v(0) = v(1) 
+;v(n_elements(v)-1) = v(n_elements(v)-2)
+;print,v*7.14e7
+;stop
+v = [v(0),v,v(n_elements(v)-1)]
+;v = [0,v,v(n_elements(v)-1)]
+;print,dL,v*7.14e7
+;stop
+
+
+;nx = nintrvl-1
+;vout = 500./(r(nx)*1e6*mp*1000.*(H.sp*nr(nx).nsp*32 + H.s2p*nr(nx).ns2p*32 + H.s3p*nr(nx).ns3p*32 + $
+;                                H.op*nr(nx).nop*16 + H.o2p*nr(nx).no2p*16))
+
+;sz = size(v)
+;v(sz(1)-1) = vout
+;print,v*7.14e7
+;stop
+;mdot = [mdot(0),mdot,mdot(nintrvl-1)]
+
+;print,total(dL/v)/60./60./24.
+
+;plot,[6,10],[0,100],/nodata
+;for i = 1,n_elements(v)-3 do begin
+;   plots,L(i),total(dL/v(0:i))/60./60./24.,/data,psym=1
+;   print,L(i),total(dL/v(0:i))/60./60./24.
+;endfor
+;stop
+
+
+
+;L_flx = (shift(L,-1) + L)/2.0
+;L_flx(n_elements(L)-1) = L_flx(n_elements(L)-2) + dL(n_elements(dL)-1)
+;nL = n_elements(L)
+;whsm = where(L ge 9.0)
+
+nsp = [nr(0).nsp,nr.nsp,nr(n_elements(nr)-1).nsp]
+;flux = nsp*v
+Lax_Wend,nsp,v,L,dt_trans
+;nsp = nsp + (dt_trans/(shift(L,-1)-shift(L,1)))*(shift(flux,-1)-shift(flux,1))
+nr.nsp = nsp(1:nintrvl)
+
+nsp = [nr(0).nsp,nr.nsp,nr(xsz-1).nsp]
+;tsp = [tbndry_in,tr.Tsp,tbndry_out]
+tsp = [tr(0).Tsp,tr.Tsp,tr(xsz-1).Tsp]
+ntsp = tsp*nsp
+Lax_Wend_E,ntsp,v,L,dt_trans
+tr.Tsp = ntsp(1:nintrvl)/nr.nsp
+
+
+ns2p = [nr(0).ns2p,nr.ns2p,nr(n_elements(nr)-1).ns2p]
+;flux = ns2p*v
+;print,ns2p
+;ns2p = ns2p + (dt_trans/(shift(L,-1)-shift(L,1)))*(shift(flux,-1)-shift(flux,1))
+Lax_Wend,ns2p,v,L,dt_trans
+nr.ns2p = ns2p(1:nintrvl)
+
+ns2p = [nr(0).ns2p,nr.ns2p,nr(xsz-1).ns2p]
+ts2p = [tr(0).Ts2p,tr.Ts2p,tr(xsz-1).Ts2p]
+nts2p = ts2p*ns2p
+Lax_Wend_E,nts2p,v,L,dt_trans
+tr.Ts2p = nts2p(1:nintrvl)/nr.ns2p
+
+ns3p = [nr(0).ns3p,nr.ns3p,nr(n_elements(nr)-1).ns3p]
+;flux = ns3p*v
+;print,ns3p
+;ns3p = ns3p + (dt_trans/(shift(L,-1)-shift(L,1)))*(shift(flux,-1)-shift(flux,1))
+Lax_Wend,ns3p,v,L,dt_trans
+nr.ns3p = ns3p(1:nintrvl)
+
+ns3p = [nr(0).ns3p,nr.ns3p,nr(xsz-1).ns3p]
+ts3p = [tr(0).Ts3p,tr.Ts3p,tr(xsz-1).Ts3p]
+nts3p = ts3p*ns3p
+Lax_Wend_E,nts3p,v,L,dt_trans
+tr.Ts3p = nts3p(1:nintrvl)/nr.ns3p
+
+nop = [nr(0).nop,nr.nop,nr(n_elements(nr)-1).nop]
+;flux = nop*v
+;print,nop
+;nop = nop + (dt_trans/(shift(L,-1)-shift(L,1)))*(shift(flux,-1)-shift(flux,1))
+Lax_Wend,nop,v,L,dt_trans
+nr.nop = nop(1:nintrvl)
+
+nop = [nr(0).nop,nr.nop,nr(xsz-1).nop]
+top = [tr(0).Top,tr.Top,tr(xsz-1).Top]
+ntop = top*nop
+Lax_Wend_E,ntop,v,L,dt_trans
+tr.Top = ntop(1:nintrvl)/nr.nop
+
+no2p = [nr(0).no2p,nr.no2p,nr(n_elements(nr)-1).no2p]
+;flux = no2p*v
+;print,no2p
+;no2p = no2p + (dt_trans/(shift(L,-1)-shift(L,1)))*(shift(flux,-1)-shift(flux,1))
+Lax_Wend,no2p,v,L,dt_trans
+nr.no2p = no2p(1:nintrvl)
+
+no2p = [nr(0).no2p,nr.no2p,nr(xsz-1).no2p]
+to2p = [tr(0).To2p,tr.To2p,tr(xsz-1).To2p]
+nto2p = to2p*no2p
+Lax_Wend_E,nto2p,v,L,dt_trans
+tr.To2p = nto2p(1:nintrvl)/nr.no2p
+
+
+
+
+
+
+return
+end
+;------------------------------------------------------------------
+
+
+
+;------------------------------------------------------------------
 pro iterate_NL2_to_equator,nl2,nl2e,nr,tr
 ;------------------------------------------------------------------
 @common

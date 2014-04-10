@@ -345,7 +345,8 @@ dLshl2 = dLshl/2
 a = (Lshl-dLshl2)*Rj                                                                         
 b = (Lshl+dLshl2)*Rj                                                                 
 Hn = h.s*1e5                                                                          
-vol = sqrt(!pi)*Hn*!pi*(b^2 - a^2)   
+;vol = sqrt(!pi)*Hn*!pi*(b^2 - a^2)   
+vol = Hn*!pi*(b^2 - a^2)   
 ;vol = 2.5e+31
 ;print,'vol...',vol
 
@@ -360,8 +361,8 @@ r.O_production = fo*net_source/vol
 ;r.S_production = fs*net_source/(sqrt(!pi)*(h.s*1e5)*Area)
 ;r.O_production = fo*net_source/(sqrt(!pi)*(h.o*1e5)*Area)
 
-;print,r.S_production
-;print,r.O_production
+;print,'S source...',r.S_production/1e-4,Lshl
+;print,'O source...',r.O_production/1e-4,Lshl
 
 ;print,'cm3 el vol...',h.el*1e5*Area
 ;print,'cm3 o vol...',h.op*1e5*Area
