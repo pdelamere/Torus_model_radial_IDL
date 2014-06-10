@@ -59,7 +59,7 @@ pro transport_NL2,nl2,nl2e,DLL_0,DLL_alpha
 ;@params
 
 tbndry_out = 200.0 ;eV
-tbndry_in = 70.0
+tbndry_in = 50.0
 Lo = 6.0
 L = [Lshell(0)-dL(0),Lshell,Lshell(nintrvl-1)+dL(nintrvl-1)]
 dL2 = (shift(L,-1)-L)/2

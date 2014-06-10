@@ -85,24 +85,24 @@ peuv = 0.0
 s = fltarr(8)
 p=fltarr(8)
 
-fh = 0.0016           ;fh (L = 6.0)
+fh = 0.0030           ;fh (L = 6.0)
 p(0) = fh
 s(0) = 0.0005
-fh_alpha = 5.5          ;fh power law
+fh_alpha = 5.3          ;fh power law
 p(1) = fh_alpha
 s(1) = 1.0
 
-net_source = 0.05e28    ;net source #/s
+net_source = 2.8e27    ;net source #/s
 p(2) = net_source
 s(2) = 0.1e28
-net_source_alpha = 12  ;power law for extended neutral source
+net_source_alpha = 11.4  ;power law for extended neutral source
 p(3) = net_source_alpha
 s(3) = 2
 
-DLL_0 = 50.2e-7         ;DLL (L = 6.0)
+DLL_0 = 18.1e-7         ;DLL (L = 6.0)
 p(4) = DLL_0
-s(4) = 5.0e-7
-DLL_alpha = 6.0        ;DLL power law
+s(4) = 2.0e-7
+DLL_alpha = 5.3        ;DLL power law
 p(5) = DLL_alpha
 s(5) = 1.0
 

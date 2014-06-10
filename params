@@ -1,10 +1,10 @@
-dt0 = 10000.0  ;cm3 time step
+dt0 = 10000.0/2  ;cm3 time step
 runt = 1*dt0   ;cm3 iterations
-nit = 500       ;total iterations
+nit = 1000       ;total iterations
 dt_trans = dt0/1000.
 
 
-nbox = 30   ;number of cm3 boxes
+nbox = 13*2   ;number of cm3 boxes
 dL0 = 0.25/2     ;dL
 theta_off = 0.0*!dtor  ;neutral cloud offset
 n_width = 5.0          ;neutral cloud width

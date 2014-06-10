@@ -34,14 +34,16 @@ read_nl2,s
 
 bufcel = 0
 
-nintrvl= nbox ;38+bufcel
+;nintrvl= nbox;38+bufcel
+nintrvl= 38+bufcel
 ;nbox = 18
 ;dL0 = 0.25
 ;dLarr = fltarr(nintrvl)
 dLarr = fltarr(nbox+bufcel)
 dLarr(*) = dL0
 ;dL = [dLarr]
-dL = [dLarr];,dL0+1.5*(findgen(nintrvl-nbox)/(nintrvl-nbox))^3]
+;dL = [dLarr];,dL0+1.5*(findgen(nintrvl-nbox)/(nintrvl-nbox))^3]
+dL = [dLarr,dL0+1.5*(findgen(nintrvl-nbox)/(nintrvl-nbox))^3]
 max_theta = 30
 
 n_theta = max_theta*2.0 + 1.0
@@ -100,6 +102,18 @@ nop0 = 600.0       ;initial O+ density
 no2p0 = 60.0      ;initial O++ density 
 nsph0 = 0.01
 noph0 = 0.01
+
+;ns0 = 10.      ;initial S neutral density (cm^-3)
+;no0 = 10.    ;initial O neutral density
+;nsp0= 100.        ;initial S+ density
+;ns2p0 = 10.
+;ns3p0 = 10.
+;ns4p0 = 0.0
+;nop0 = 10.
+;no2p0 = 10.
+;nsph0 = 0.01
+;noph0 = 0.01
+
 nel0 = nsp0+2.0*ns2p0+3.0*ns3p0+4.0*ns4p0+nop0+2.0*no2p0+nsph0+noph0   ;initial electron density
 nelh0 = 0.01*nel0
 
@@ -325,6 +339,7 @@ nr(whge).no = 1e-10
 plot_io,Lshell,nr.no,yrange=[0.1,100],/ysty
 oplot,Lshell,nr.ns
 
+
 nr(*).nel =  nr(*).nsp+2.0*nr(*).ns2p+3.0*nr(*).ns3p+4.0*nr(*).ns4p+nr(*).nop+$
              2.0*nr(*).no2p + nr(*).nsph + nr(*).noph
 nr(*).nelh = fh*nel0
@@ -519,7 +534,7 @@ for ii = 0,nbox-1 do begin
 
 ;    print,'params...',fh,net_source,DLL_0
     cm3_model,n,T,nT,n1,T1,nT1,np,Tp,nTp,r,r1,nar,n1ar,h,h1,hp,$
-              nl,Ec,src,lss,temps,dens,p,Lshell(i),dL(i),mr
+              nl,Ec,src,lss,temps,dens,p,Lshell(i),dL(i),mr,ii
 
     tot_peuv(i) = r.peuv 
     tot_peuvh(i) = r.peuvh
@@ -563,18 +578,18 @@ sti = tr(0).Tsp*nr(0).nsp+tr(0).Ts2p*nr(0).ns2p+tr(0).Ts3p*nr(0).ns3p+tr(0).Top*
 sni = nr(0).nsp+nr(0).ns2p+nr(0).ns3p+nr(0).nop+nr(0).no2p 
 tionavg=sti/sni
 
-;get_NL2,nr,tr,nl2,nl2e
+get_NL2,nr,tr,nl2,nl2e
 
 !p.multi=[0,1,1]
 
-;for k = 0,nit_trans-1 do begin
-;   transport_NL2,nl2,nl2e,DLL_0,DLL_alpha
-;endfor
-
-
 for k = 0,nit_trans-1 do begin
-   transport_flux,nr,tr,DLL_0,DLL_alpha,H,mdot
+   transport_NL2,nl2,nl2e,DLL_0,DLL_alpha
 endfor
+
+
+;for k = 0,nit_trans-1 do begin
+;   transport_flux,nr,tr,DLL_0,DLL_alpha,H,mdot
+;endfor
 
 
 
@@ -585,20 +600,20 @@ endfor
 ;tr.Top = nl2e.nop/(nl2.nop*Lshell^(8./3.))
 ;tr.To2p = nl2e.no2p/(nl2.no2p*Lshell^(8./3.))
 
-;;Richardson
-;tr.Tsp = (nl2e.nsp/(nl2.nsp*Lshell^(2)))^(3./4.)
-;tr.Ts2p = (nl2e.ns2p/(nl2.ns2p*Lshell^(2)))^(3./4.)
-;tr.Ts3p = (nl2e.ns3p/(nl2.ns3p*Lshell^(2)))^(3./4.)
-;tr.Top = (nl2e.nop/(nl2.nop*Lshell^(2)))^(3./4.)
-;tr.To2p = (nl2e.no2p/(nl2.no2p*Lshell^(2)))^(3./4.)
+;Richardson
+tr.Tsp = (nl2e.nsp/(nl2.nsp*Lshell^(2)))^(3./4.)
+tr.Ts2p = (nl2e.ns2p/(nl2.ns2p*Lshell^(2)))^(3./4.)
+tr.Ts3p = (nl2e.ns3p/(nl2.ns3p*Lshell^(2)))^(3./4.)
+tr.Top = (nl2e.nop/(nl2.nop*Lshell^(2)))^(3./4.)
+tr.To2p = (nl2e.no2p/(nl2.no2p*Lshell^(2)))^(3./4.)
 
-;tr(nintrvl-1).Tsp = tr(nintrvl-2).Tsp 
-;tr(nintrvl-1).Ts2p = tr(nintrvl-2).Ts2p 
-;tr(nintrvl-1).Ts3p = tr(nintrvl-2).Ts3p 
-;tr(nintrvl-1).Top = tr(nintrvl-2).Top 
-;tr(nintrvl-1).To2p = tr(nintrvl-2).To2p 
+tr(nintrvl-1).Tsp = tr(nintrvl-2).Tsp 
+tr(nintrvl-1).Ts2p = tr(nintrvl-2).Ts2p 
+tr(nintrvl-1).Ts3p = tr(nintrvl-2).Ts3p 
+tr(nintrvl-1).Top = tr(nintrvl-2).Top 
+tr(nintrvl-1).To2p = tr(nintrvl-2).To2p 
 
-;iterate_NL2_to_equator,nl2,nl2e,nr,tr
+iterate_NL2_to_equator,nl2,nl2e,nr,tr
 
 ;tr.Tsp = 100.
 ;tr.Ts2p = 100.
@@ -681,8 +696,8 @@ plot_io,Lshell,mrr.s3p,linestyle=3,yrange=[0.01,0.4],/ysty,$
    xrange=[6,Lshell(nbox-1)],/xsty,title='S+++'
 oploterr,as_r,s4mix,s4mixerr
 
-plot_io,Lshell,mdot,title='Mdot'
-oplot,[!x.crange(0),!x.crange(1)],[mdot_source,mdot_source],linestyle=1
+;plot_io,Lshell,mdot,title='Mdot'
+;oplot,[!x.crange(0),!x.crange(1)],[mdot_source,mdot_source],linestyle=1
 
 
 mr_r(0) = mrr(0).sp
