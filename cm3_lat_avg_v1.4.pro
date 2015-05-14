@@ -231,6 +231,8 @@ Ntot = wsp+ws2p+ws3p+wop+wo2p
 
 h.el = (wsp*h.sp + ws2p*h.s2p + ws3p*h.s3p + wop*h.op + wo2p*h.o2p)/(Ntot)
 
+
+
 return
 end
 ;-----------------------------------------------------------------------
@@ -345,10 +347,7 @@ dLshl2 = dLshl/2
 a = (Lshl-dLshl2)*Rj                                                                         
 b = (Lshl+dLshl2)*Rj                                                                 
 Hn = h.s*1e5                                                                          
-
-;vol = sqrt(!pi)*Hn*!pi*(b^2 - a^2)   
-vol = Hn*!pi*(b^2 - a^2)   
-;vol = 2*Hn*!pi*(b^2 - a^2)   
+vol = sqrt(!pi)*Hn*!pi*(b^2 - a^2)   
 ;vol = 2.5e+31
 ;print,'vol...',vol
 
@@ -359,12 +358,17 @@ fo = otos/(1.0+otos)
 r.S_production = fs*net_source/vol
 r.O_production = fo*net_source/vol
 
+;print,'S+ source...',Lshl,r.S_production,net_source
+
+
 ;Calculate the equatorial production rates based on total source rate.
 ;r.S_production = fs*net_source/(sqrt(!pi)*(h.s*1e5)*Area)
 ;r.O_production = fo*net_source/(sqrt(!pi)*(h.o*1e5)*Area)
 
-;print,'S source...',r.S_production,Lshl
-;print,'O source...',r.O_production,Lshl
+;print,Lshl,r.S_production,net_source,vol
+;print,Lshl,r.O_production
+
+;stop
 
 ;print,'cm3 el vol...',h.el*1e5*Area
 ;print,'cm3 o vol...',h.op*1e5*Area
@@ -376,7 +380,7 @@ end
 
 
 ;-----------------------------------------------------------------------
-function F_s,n,h,r,S,L 
+function F_s,n,h,r,S,L,Lshl 
 ;-----------------------------------------------------------------------
 S = r.S_production ;+ r.cx_k8*ftavg(n.no,n.nsp)
 L = r.is*ftavg_n_el(n.ns,n,h.s,h,h.s) + r.ish*ftavg_n_elh(n.ns,n,h.s,h,h.s) + $ 
@@ -387,13 +391,32 @@ L = r.is*ftavg_n_el(n.ns,n,h.s,h,h.s) + r.ish*ftavg_n_elh(n.ns,n,h.s,h,h.s) + $
 
 F_s = S - L
 
+
+;if (Lshl le 6.1) then begin
+;print,' '
+;print,'S source......................',r.S_production ;+ r.cx_k8*ftavg(n.no,n.nsp)/S
+;print,'n.s............................',n.ns
+;print,'S loss thermal elec impact....',r.is*ftavg_n_el(n.ns,n,h.s,h,h.s)/L
+;print,'S loss hot elec impact........',r.ish*ftavg_n_elh(n.ns,n,h.s,h,h.s)/L
+;print,'S loss k4.....................',r.cx_k4*ftavg_n(n.ns3p,n.ns,h.s3p,h.s,h.s)/L
+;print,'S loss k11....................',r.cx_k11*ftavg_n(n.no2p,n.ns,h.o2p,h.s,h.s)/L
+;print,'S loss k10....................',r.cx_k10*ftavg_n(n.no2p,n.ns,h.o2p,h.s,h.s)/L
+;print,'S loss k2.....................',r.cx_k2*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.s)/L
+;print,'S loss k9.....................',r.cx_k9*ftavg_n(n.nop,n.ns,h.op,h.s,h.s)/L
+;print,'S loss k3.....................',r.cx_k3*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.s)/L
+;print,'S loss k1.....................',r.cx_k1*ftavg_n(n.nsp,n.ns,h.sp,h.s,h.s)/L 
+;print,' '
+;endif
+
+
+
 return,F_s
 end
 ;-----------------------------------------------------------------------  
 
 
 ;-----------------------------------------------------------------------  
-function F_sp,n,h,r,S,L
+function F_sp,n,h,r,S,L,Lshl
 ;-----------------------------------------------------------------------  
 S = r.is*ftavg_n_el(n.ns,n,h.s,h,h.sp) + r.ish*ftavg_n_elh(n.ns,n,h.s,h,h.sp) + $
     r.rs2p*ftavg_el(n.ns2p,n,h.s2p,h,h.sp) + $
@@ -406,6 +429,39 @@ L = r.isp*ftavg_el(n.nsp,n,h.sp,h,h.sp) + r.cx_k13*ftavg(n.no2p,n.nsp,h.o2p,h.sp
     r.cx_k16*ftavg(n.ns3p,n.nsp,h.s3p,h.sp,h.sp) + r.rsp*ftavg_el(n.nsp,n,h.sp,h,h.sp)
 
 F_sp = S - L
+
+
+;if (Lshl le 6.1) then begin
+;print,'hot electron rate.....',r.ish
+;print,'hot electron ns.......',n.ns
+;print,'hot electron nsp.......',n.nsp
+;print,'hot electron n.fh.....',n.fh
+;print,'hot electron n.nel....',n.nel
+;print,'hot electron h.s......',h.s/7.14e4
+
+;print,' '
+;print,'S+ source thermal electron impact...',r.is*ftavg_n_el(n.ns,n,h.s,h,h.sp)/S
+;print,'S+ source hot elec impact...........',r.ish*ftavg_n_elh(n.ns,n,h.s,h,h.sp)/S
+;print,'S+ source S++ recomb................',r.rs2p*ftavg_el(n.ns2p,n,h.s2p,h,h.sp)/S
+;print,'S+ source k2........................',2.0*r.cx_k2*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.sp)/S
+;print,'S+ source k4........................',r.cx_k4*ftavg_n(n.ns3p,n.ns,h.s3p,h.s,h.sp)/S
+;print,'S+ source k9........................',r.cx_k9*ftavg_n(n.nop,n.ns,h.op,h.s,h.sp)/S
+;print,'S+ source k10.......................',r.cx_k10*ftavg_n(n.no2p,n.ns,h.o2p,h.s,h.sp)/S
+;print,'S+ source k12.......................',r.cx_k12*ftavg_n(n.ns2p,n.no,h.s2p,h.o,h.sp)/S
+;print,' '
+;print,'S+ loss thermal electron impact.....',r.isp*ftavg_el(n.nsp,n,h.sp,h,h.sp)/L
+;;print,'S+ loss Transport...................',n.nsp*r.Transport/L
+;print,'S+ loss hot electron impact.........',r.isph*ftavg_elh(n.nsp,n,h.sp,h,h.sp)/L
+;print,'S+ loss recomb......................',r.rsp*ftavg_el(n.nsp,n,h.sp,h,h.sp)/L
+;print,'S+ loss k8..........................',r.cx_k8*ftavg_n(n.nsp,n.no,h.sp,h.o,h.sp)/L
+;print,'S+ loss 13..........................',r.cx_k13*ftavg(n.no2p,n.nsp,h.o2p,h.sp,h.sp)/L
+;print,'S+ loss k16.........................',r.cx_k16*ftavg(n.ns3p,n.nsp,h.s3p,h.sp,h.sp)/L
+
+
+;print,'Transport....',r.Transport
+
+;endif
+
 
 return,F_sp
 end
@@ -1272,59 +1328,36 @@ return,EF_o2p
 end
 ;-----------------------------------------------------------------------  
 
+
 ;-----------------------------------------------------------------------  
-pro get_neutral_loss_rate,n,r,T,nl,h
+pro get_neutral_loss_rate,n,r,T,nl
 ;-----------------------------------------------------------------------  
 
-;nl.sei = r.is*n.ns*n.nel
-nl.sei = r.is*ftavg_n_el(n.ns,n,h.s,h,h.sp) 
-nl.seih =  r.ish*ftavg_n_elh(n.ns,n,h.s,h,h.sp)
-;nl.seih = r.ish*n.ns*n.nelh
-;nl.oei = r.io*n.no*n.nel
-;nl.oeih = r.ioh*n.no*n.nelh
-nl.oei = r.io*ftavg_n_el(n.no,n,h.o,h,h.op) 
-nl.oeih = r.ioh*ftavg_n_elh(n.no,n,h.o,h,h.op)
+nl.sei = r.is*n.ns*n.nel
+nl.seih = r.ish*n.ns*n.nelh
+nl.oei = r.io*n.no*n.nel
+nl.oeih = r.ioh*n.no*n.nelh
 
-;nl.k1 = r.cx_k1*n.ns*n.nsp
-nl.k1 = r.cx_k1*ftavg_n(n.nsp,n.ns,h.sp,h.s,h.s)
-;nl.k2 = r.cx_k2*n.ns*n.ns2p
-nl.k2 = r.cx_k2*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.s)
-;nl.k3 = r.cx_k3*n.ns*n.ns2p
-nl.k3 = r.cx_k3*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.s)
-;nl.k4 = r.cx_k4*n.ns*n.ns3p
-nl.k4 = r.cx_k4*ftavg_n(n.ns3p,n.ns,h.s3p,h.s,h.s)
-;nl.k5 = r.cx_k5*n.no*n.nop
-nl.k5 = r.cx_k5*ftavg_n(n.nop,n.no,h.op,h.o,h.o)
-;nl.k6 = r.cx_k6*n.no*n.no2p
-nl.k6 = r.cx_k6*ftavg_n(n.no2p,n.no,h.o2p,h.o,h.o)
-;nl.k7 = r.cx_k7*n.no*n.no2p
-nl.k7 = r.cx_k7*ftavg_n(n.no2p,n.no,h.o2p,h.o,h.o)
-;nl.k8 = r.cx_k8*n.no*n.nsp
-nl.k8 = r.cx_k8*ftavg_n(n.nsp,n.no,h.sp,h.o,h.o)
-;nl.k9 = r.cx_k9*n.ns*n.nop
-nl.k9 = r.cx_k9*ftavg_n(n.nop,n.ns,h.op,h.s,h.s)
-;nl.k10 = r.cx_k10*n.ns*n.no2p
-nl.k10 = r.cx_k10*ftavg_n(n.no2p,n.ns,h.o2p,h.s,h.s)
-;nl.k11 = r.cx_k11*n.ns*n.no2p
-nl.k11 = r.cx_k11*ftavg_n(n.no2p,n.ns,h.o2p,h.s,h.s)
-;nl.k12 = r.cx_k12*n.no*n.ns2p
-nl.k12 = r.cx_k12*ftavg_n(n.ns2p,n.no,h.s2p,h.o,h.o)
-;nl.k14 = r.cx_k14*n.no*n.ns3p
-nl.k14 = r.cx_k14*ftavg_n(n.ns3p,n.no,h.s3p,h.o,h.o)
+nl.k1 = r.cx_k1*n.ns*n.nsp
+nl.k2 = r.cx_k2*n.ns*n.ns2p
+nl.k3 = r.cx_k3*n.ns*n.ns2p
+nl.k4 = r.cx_k4*n.ns*n.ns3p
+nl.k5 = r.cx_k5*n.no*n.nop
+nl.k6 = r.cx_k6*n.no*n.no2p
+nl.k7 = r.cx_k7*n.no*n.no2p
+nl.k8 = r.cx_k8*n.no*n.nsp
+nl.k9 = r.cx_k9*n.ns*n.nop
+nl.k10 = r.cx_k10*n.ns*n.no2p
+nl.k11 = r.cx_k11*n.ns*n.no2p
+nl.k12 = r.cx_k12*n.no*n.ns2p
+nl.k14 = r.cx_k14*n.no*n.ns3p
 
-
-;nl.fast_S_k1 = r.cx_k1*n.ns*n.nsp*T.Tsp
-nl.fast_S_k1 = r.cx_k1*ftavg_n(n.nsp,n.ns,h.sp,h.s,h.s)*T.Tsp
-;nl.fast_S_k3 = r.cx_k3*n.ns*n.ns2p*T.Ts2p
-nl.fast_S_k3 = r.cx_k3*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.s)*T.Ts2p
-;nl.fast_O_k5 = r.cx_k5*n.no*n.nop*T.Top
-nl.fast_O_k5 = r.cx_k5*ftavg_n(n.nop,n.no,h.op,h.o,h.o)*T.Top
-;nl.fast_O_k7 = r.cx_k7*n.no*n.no2p*T.To2p
-nl.fast_O_k7 = r.cx_k7*ftavg_n(n.no2p,n.no,h.o2p,h.o,h.o)*T.To2p
-;nl.fast_S_k8 = r.cx_k8*n.no*n.nsp*T.Tsp
-nl.fast_S_k8 = r.cx_k8*ftavg_n(n.nsp,n.no,h.sp,h.o,h.o)*T.Tsp
-;nl.fast_O_k9 = r.cx_k9*n.ns*n.nop*T.Top
-nl.fast_O_k9 = r.cx_k9*ftavg_n(n.nop,n.ns,h.op,h.s,h.s)*T.Top
+nl.fast_S_k1 = r.cx_k1*n.ns*n.nsp*T.Tsp
+nl.fast_S_k3 = r.cx_k3*n.ns*n.ns2p*T.Ts2p
+nl.fast_O_k5 = r.cx_k5*n.no*n.nop*T.Top
+nl.fast_O_k7 = r.cx_k7*n.no*n.no2p*T.To2p
+nl.fast_S_k8 = r.cx_k8*n.no*n.nsp*T.Tsp
+nl.fast_O_k9 = r.cx_k9*n.ns*n.nop*T.Top
 
 nl.sion_tot = nl.sei+nl.seih
 nl.oion_tot = nl.oei+nl.oeih
@@ -1336,55 +1369,9 @@ nl.ocx_tot = nl.k5+nl.k6+nl.k7+nl.k8+nl.k12+nl.k14
 nl.s_tot = nl.sion_tot+nl.scx_tot
 nl.o_tot = nl.oion_tot+nl.ocx_tot
 
-
 return
 end
 ;-----------------------------------------------------------------------  
-
-
-;;-----------------------------------------------------------------------  
-;pro get_neutral_loss_rate,n,r,T,nl
-;;-----------------------------------------------------------------------  
-
-;nl.sei = r.is*n.ns*n.nel
-;nl.seih = r.ish*n.ns*n.nelh
-;nl.oei = r.io*n.no*n.nel
-;nl.oeih = r.ioh*n.no*n.nelh
-
-;nl.k1 = r.cx_k1*n.ns*n.nsp
-;nl.k2 = r.cx_k2*n.ns*n.ns2p
-;nl.k3 = r.cx_k3*n.ns*n.ns2p
-;nl.k4 = r.cx_k4*n.ns*n.ns3p
-;nl.k5 = r.cx_k5*n.no*n.nop
-;nl.k6 = r.cx_k6*n.no*n.no2p
-;nl.k7 = r.cx_k7*n.no*n.no2p
-;nl.k8 = r.cx_k8*n.no*n.nsp
-;nl.k9 = r.cx_k9*n.ns*n.nop
-;nl.k10 = r.cx_k10*n.ns*n.no2p
-;nl.k11 = r.cx_k11*n.ns*n.no2p
-;nl.k12 = r.cx_k12*n.no*n.ns2p
-;nl.k14 = r.cx_k14*n.no*n.ns3p
-
-;nl.fast_S_k1 = r.cx_k1*n.ns*n.nsp*T.Tsp
-;nl.fast_S_k3 = r.cx_k3*n.ns*n.ns2p*T.Ts2p
-;nl.fast_O_k5 = r.cx_k5*n.no*n.nop*T.Top
-;nl.fast_O_k7 = r.cx_k7*n.no*n.no2p*T.To2p
-;nl.fast_S_k8 = r.cx_k8*n.no*n.nsp*T.Tsp
-;nl.fast_O_k9 = r.cx_k9*n.ns*n.nop*T.Top
-
-;nl.sion_tot = nl.sei+nl.seih
-;nl.oion_tot = nl.oei+nl.oeih
-;nl.scx_tot = nl.k1+nl.k2+nl.k3+nl.k4+nl.k9+nl.k10+nl.k11
-;;nl.scx_tot = nl.k2+nl.k4+nl.k9+nl.k10+nl.k11
-;;nl.ocx_tot = nl.k6+nl.k8+nl.k12+nl.k14
-;nl.ocx_tot = nl.k5+nl.k6+nl.k7+nl.k8+nl.k12+nl.k14
-
-;nl.s_tot = nl.sion_tot+nl.scx_tot
-;nl.o_tot = nl.oion_tot+nl.ocx_tot
-
-;return
-;end
-;;-----------------------------------------------------------------------  
 
 
 ;-----------------------------------------------------------------------  
@@ -1929,7 +1916,7 @@ end
 ;pro cm3_model,n,nT,T
 ;pro cm3_model,n,T,Lshl,dLshl,mr,emis
 pro cm3_model,n,T,nT,n1,T1,nT1,np,Tp,nTp,r,r1,nar,n1ar,h,h1,hp,$
-              nl,Ec,src,lss,temps,dens,p,Lshl,dLshl,mr,ii
+              nl,Ec,src,lss,temps,dens,p,Lshl,dLshl,mr
 
 ;main program
 ;cubic centimeter torus chemistry model
@@ -2050,11 +2037,11 @@ for i = 0,ntm do begin
 
 
    ;full time step advance
-   n1.ns = n.ns + dt*F_s(n,h,r,S,L)
+   n1.ns = n.ns + dt*F_s(n,h,r,S,L,Lshl)
 
 ;   src(i).s = S
 ;   lss(i).s = L
-   n1.nsp = n.nsp + dt*F_sp(n,h,r,S,L)
+   n1.nsp = n.nsp + dt*F_sp(n,h,r,S,L,Lshl)
 
 ;   src(i).sp = S
 ;   lss(i).sp = L
@@ -2102,8 +2089,8 @@ for i = 0,ntm do begin
 ;   get_lat_dist,n1,T1,nar,max_theta
 ;   neutral_navg,n1,n1ar,max_theta
 
-   np.ns = n.ns + dt*0.5*(F_s(n,h,r)+F_s(n1,h1,r))
-   np.nsp = n.nsp + dt*0.5*(F_sp(n,h,r)+F_sp(n1,h1,r))
+   np.ns = n.ns + dt*0.5*(F_s(n,h,r,S,L,Lshl)+F_s(n1,h1,r,S,L,Lshl))
+   np.nsp = n.nsp + dt*0.5*(F_sp(n,h,r,S,L,Lshl)+F_sp(n1,h1,r,S,L,Lshl))
    np.ns2p = n.ns2p + dt*0.5*(F_s2p(n,h,r)+F_s2p(n1,h1,r))
    np.ns3p = n.ns3p + dt*0.5*(F_s3p(n,h,r)+F_s3p(n1,h1,r))
    np.no = n.no + dt*0.5*(F_o(n,h,r)+F_o(n1,h1,r))
@@ -2175,38 +2162,7 @@ for i = 0,ntm do begin
 ;   endif
 endfor
 
-get_neutral_loss_rate,n,r,T,nl,h
-
-fastout_s = r.cx_k1*ftavg_n(n.nsp,n.ns,h.sp,h.s,h.s) + r.cx_k3*ftavg_n(n.ns2p,n.ns,h.s2p,h.s,h.s) + $
-            r.cx_k8*ftavg_n(n.nsp,n.no,h.sp,h.o,h.o)
-fastout_o = r.cx_k5*ftavg_n(n.nop,n.no,h.op,h.o,h.o) + r.cx_k7*ftavg_n(n.no2p,n.no,h.o2p,h.o,h.o) + $
-            r.cx_k9*ftavg_n(n.nop,n.ns,h.op,h.s,h.s)
-
-
-Rj = 7.14e4*1e5 ;cm
-;a = 6.0*Rj
-;b = 7.5*Rj
-;vol = 0.25*!pi^2*(a+b)*(b-a)^2
-Area = (sqrt(!pi))*!pi*((Lshl + dLshl/2)^2 - (Lshl - dLshl/2)^2)*Rj^2
-
-;transout_s = r.transport*(n.nsp*h.sp*1e5*Area + n.ns2p*h.s2p*1e5*Area + n.ns3p*h.s3p*1e5*Area)
-;transout_o = r.transport*(n.nop*h.op*1e5*Area + n.no2p*h.o2p*1e5*Area) 
-;transout_e = f*r.transport*n.nel*T.Tel
-totalinput = net_source
-
-;print,' '
-;print,'Mass flow'
-;print,'S input.............',sinput,sinput/totalinput
-;print,'O input.............',oinput,oinput/totalinput
-;print,'Fast output.........',fastout_s/totalinput,fastout_o/totalinput,(fastout_s+fastout_o)/totalinput
-;print,'Trans output........',transout_s/totalinput,transout_o/totalinput,(transout_s+transout_o)/totalinput
-;print,'Scale height...,',h.s
-;print,'Fast dot............',ii,(fastout_s*h.s*1e5*Area*32.+fastout_o*h.o*1e5*Area*16)*1.67e-27,net_source;*20*1.67e-27
-;print,'Mdot................',(transout_s+transout_o)
-;print,'Total mass loss rate...',(fastout_s*h.s*1e5*Area+fastout_o*h.o*1e5*Area) + (transout_s+transout_o)
-
-
-
+;get_neutral_loss_rate,n,r,T,nl
 ;energy_conservation,n,r,T,nl,Ec,h
 
 ;save,filename='src_func.sav',src

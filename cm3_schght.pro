@@ -212,6 +212,7 @@ end
 ;---------------------------------------------------------------------
 pro f_df_ions,s3,L,theta_G_0,theta_G,Z,A,T,anis,n0,n1,fions,dfions,phi
 ;---------------------------------------------------------------------
+
 ;s3....system III longitude
 ;L.....L-shell
 ;theta_G_0....Jovigraphic latitude at S_0
@@ -324,7 +325,7 @@ end
 
 
 ;---------------------------------------------------------------------
-pro cm3_expand,n,narr,T,nar,max_theta
+pro cm3_expand,n,narr,T,nar,max_theta,Lshl
 ; n contains the equatorial densities
 ; narr is density array containing [7,61] elements
 ; nar is a structure containing  61 elements for +/- 30 deg above and 
@@ -336,13 +337,16 @@ pro cm3_expand,n,narr,T,nar,max_theta
 ;!p.multi=[0,1,2]
 q = 1.6e-19
 
-A = [1/1685.17,16.0,16.0,32.0,32.0,32.0,1/1685.]
-;A = [0.0,16.0,16.0,32.0,32.0,32.0]
-Z = [-1.0,1.0,2.0,1.0,2.0,3.0,-1.0]
+;A = [1/1685.17,16.0,16.0,32.0,32.0,32.0,1/1685.]
+A = [1/1685.17,16.0,16.0,32.0,32.0,32.0]
+;Z = [-1.0,1.0,2.0,1.0,2.0,3.0,-1.0]
+Z = [-1.0,1.0,2.0,1.0,2.0,3.0]
 ;T = [5.0,70.0,70.0,70.0,70.0,70.0]
-Tarr = [T.Tel,T.Top,T.To2p,T.Tsp,T.Ts2p,T.Ts3p,T.Telh]
+;Tarr = [T.Tel,T.Top,T.To2p,T.Tsp,T.Ts2p,T.Ts3p,T.Telh]
+Tarr = [T.Tel,T.Top,T.To2p,T.Tsp,T.Ts2p,T.Ts3p]
 
-n0 = [n.nel,n.nop,n.no2p,n.nsp,n.ns2p,n.ns3p,n.nelh]
+;n0 = [n.nel,n.nop,n.no2p,n.nsp,n.ns2p,n.ns3p,n.nelh]
+n0 = [n.nel,n.nop,n.no2p,n.nsp,n.ns2p,n.ns3p]
 
 ;n0 = [1000.0,100.0,200.0,500.0,8.0]
 ;n0 = [total(n0),n0]
@@ -353,12 +357,12 @@ n1_ions = n0(*)
 n1_elec = n0(0)
 
 s3 = 148.0*!dtor
-L = 6.0
+L = Lshl
 theta_G_0 = 0.0
 ;theta_G = 15.0*!dtor
 ;theta_G = 0.0*!dtor
 anis = 1.0
-fmin = 0.001
+fmin = 1e-10
 ;max_theta = 30  
 kappa = 2.4
 
@@ -371,9 +375,8 @@ for i = 0,2.0*max_theta do begin
    vwght(i) = cos(theta_G)^7
 
    phi = 0.0
-   it = 20
+   it = 50
    for j = 0,it-1 do begin
-
       f = 0.0
       df = 0.0
 
@@ -396,6 +399,7 @@ for i = 0,2.0*max_theta do begin
       phi = phi-f/df
 
    endfor
+
    if (abs(f) gt fmin) then begin
       print,'Error...check convergence...'
       print,abs(f),fmin
@@ -408,13 +412,13 @@ for i = 0,2.0*max_theta do begin
 endfor
 
 ;if (n_params(0) eq 4) then begin
-nar(*).nel = reform(narr(0,*))
+nar(*).nel = reform(narr(1,*)+2.0*narr(2,*)+narr(3,*)+2.0*narr(4,*)+3.0*narr(5,*))
 nar(*).nop = reform(narr(1,*))
 nar(*).no2p = reform(narr(2,*))
 nar(*).nsp = reform(narr(3,*))
 nar(*).ns2p = reform(narr(4,*))
 nar(*).ns3p = reform(narr(5,*))
-nar(*).nelh = reform(narr(6,*))
+;nar(*).nelh = reform(narr(6,*))
 ;endif
 
 ;!p.multi=[0,3,3]
@@ -444,8 +448,8 @@ nar(*).nelh = reform(narr(6,*))
 ;         linestyle=[0,1,2,3,4,5],/right
 
 theta = max_theta-findgen(2.0*max_theta)
-save,filename='torus_profile.sav',theta,narr,Tkappa,max_theta,S3,n0,kappa
-
+;save,filename='torus_profile_1.sav',theta,nar
+save,filename='torus_profile_1'+strmid(strtrim(string(Lshl),2),0,5)+'.sav',nar
 ;sum_n = total(narr(0,*)*vwght)
 ;sum_nT = total(narr(0,*)*Tkappa*vwght)
 ;T.Tel_el = sum_nT/sum_n
@@ -479,6 +483,51 @@ save,filename='torus_profile.sav',theta,narr,Tkappa,max_theta,S3,n0,kappa
 return
 end
 ;---------------------------------------------------------------------
+
+
+;---------------------------------------------------------------------
+pro cm3_expand_1,n,T,hr,nar,max_theta,Lshl,s
+; n contains the equatorial densities
+; narr is density array containing [7,61] elements
+; nar is a structure containing  61 elements for +/- 30 deg above and 
+;     below the equator plane.
+; T contains the electron and ion temps.
+;---------------------------------------------------------------------
+Rj=7.14e4 ;km
+
+L = Lshl
+
+s = [0,fltarr(max_theta)]
+
+dtheta=1.0*!pi/180.
+for i = 1,max_theta do begin
+   theta = i*!pi/180.
+   ds = L*Rj*cos(theta)*sqrt(1+3*sin(theta)^2)*dtheta
+   s(i) = s(i-1) + ds
+endfor
+
+s = [-reverse(s),s(1:n_elements(s)-1)]
+
+
+for i = 0,2.0*max_theta do begin
+   theta_G = (-max_theta+i)*!dtor
+   nar(i).nsp = n.nsp*exp(-s(i)^2/hr.sp^2)
+   nar(i).ns2p = n.ns2p*exp(-s(i)^2/hr.s2p^2)
+   nar(i).ns3p = n.ns3p*exp(-s(i)^2/hr.s3p^2)
+   nar(i).nop = n.nop*exp(-s(i)^2/hr.op^2)
+   nar(i).no2p = n.no2p*exp(-s(i)^2/hr.o2p^2)
+   nar(i).nel = nar(i).nsp + 2.0*nar(i).ns2p + 3.0*nar(i).ns3p + $
+                nar(i).nop + 2.0*nar(i).no2p
+endfor
+
+theta = max_theta-findgen(2.0*max_theta)
+;print,'Saving....',strmid(strtrim(string(Lshl),2),0,5)
+save,filename='torus_profile'+strmid(strtrim(string(Lshl),2),0,5)+'.sav',nar
+
+return
+end
+;---------------------------------------------------------------------
+
 
 
 ;---------------------------------------------------------------------

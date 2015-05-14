@@ -16,19 +16,25 @@ dL = dL0
 Lo = 6.0
 L = Lo + findgen(21)*dL
 
-dll= DLL_0*(L/Lo)^DLL_alpha 
+dll= DLL_0*((L+dL/2)/Lo)^DLL_alpha 
 
-nl2elec = nl2.nsp+2.0*nl2.ns2p+3.0*nl2.ns3p+nl2.nop+2.0*nl2.no2p
+;nl2elec = nl2.nsp+2.0*nl2.ns2p+3.0*nl2.ns3p+nl2.nop+2.0*nl2.no2p
 nl2elec = nl2.nsp+nl2.ns2p+nl2.ns3p+nl2.nop+nl2.no2p
 N = nl2elec/L^2
 
-plot,nl2elec
+
+p=plot(L,nl2elec,'-or',/ylog)
+p.xtitle='L'
+p.ytitle='NL$^2$'
+p = plot(L,DLL,'-or',/ylog)
+p.xtitle='L'
+p.ytitle='DLL (s$^{-1})$'
 ;stop
 
 tau = fltarr(n_elements(L))
 
 i = 0
-    t1 = (dll(i)/L(i)^2)*(nl2elec(i+1)-nl2elec(i))/dL
+    t1 = (dll(i)/L(i)^2)*(nl2elec(i+1)-nl2elec(i))/(dL)
     t2 = -total(N(i)*dL)
     temp = (t2/t1)/60./60./24.
     tau(0) = temp
@@ -36,8 +42,8 @@ i = 0
 
 
 for i = 1,n_elements(L)-2 do begin
-;    t1 = (dll(i)/L(i)^2)*(0.5*(nl2elec(i+1)+nl2elec(i))-0.5*(nl2elec(i)+nl2elec(i-1)))/dL
-    t1 = (dll(i)/L(i)^2)*(nl2elec(i+1)-nl2elec(i))/dL
+    t1 = (dll(i)/L(i)^2)*(0.5*(nl2elec(i+1)+nl2elec(i))-0.5*(nl2elec(i)+nl2elec(i-1)))/dL
+;    t1 = (dll(i)/L(i)^2)*(nl2elec(i+1)-nl2elec(i))/(dL)
     ;print,(nl2elec(i+1)-nl2elec(i))/dL
     t2 = -total(N(i)*dL)
     ;print,t2
@@ -51,9 +57,9 @@ tau_schreier = [63,84,86.5]
 
 L_schreier = [7.0,7.5,8.0]
 
-plot,L,tau,xtitle='L (R!dJ!n)',ytitle='Integrated transport time (days)',$
-  xrange=[5.75,9],/xsty,yrange=[0,200],/ysty
-oplot,L_schreier,tau_schreier,psym=1
+p = plot(L,tau,'-or',xtitle='L (R!dJ!n)',ytitle='Integrated transport time (days)',$
+  xrange=[5.75,9],yrange=[0,100])
+p = plot(L_schreier,tau_schreier,'+',/overplot)
 
 ;plot_io,L,tau,xtitle='L (R!dJ!n)',ytitle='Transport time (days)',$
 ;   linestyle=0,yrange=[0.5,100],/ysty,title='Total = '+string(total(tau))+' (days)

@@ -63,7 +63,7 @@ print,'sp...........',mr(0),mr(1)
 print,'chi_sqrd.....',chi
 print,' '
 
-openw,2,'params10.dat',/append
+openw,2,'params1.dat',/append
 printf,2,p,mr,nelec6,tionavg,peuv_peuvh,chi
 close,2
 
@@ -85,33 +85,33 @@ peuv = 0.0
 s = fltarr(8)
 p=fltarr(8)
 
-fh = 0.0030           ;fh (L = 6.0)
+fh = 0.0013           ;fh (L = 6.0)
 p(0) = fh
-s(0) = 0.0005
-fh_alpha = 5.3          ;fh power law
+s(0) = 0.001
+fh_alpha = 5.0          ;fh power law
 p(1) = fh_alpha
-s(1) = 1.0
+s(1) = 2.0
 
-net_source = 2.8e27    ;net source #/s
+net_source = 1e28    ;net source #/s
 p(2) = net_source
-s(2) = 0.1e28
-net_source_alpha = 11.4  ;power law for extended neutral source
+s(2) = 2.0e28
+net_source_alpha = 14.85  ;power law for extended neutral source
 p(3) = net_source_alpha
-s(3) = 2
+s(3) = 5
 
-DLL_0 = 18.1e-7         ;DLL (L = 6.0)
+DLL_0 = 9e-7         ;DLL (L = 6.0)
 p(4) = DLL_0
-s(4) = 2.0e-7
-DLL_alpha = 5.3        ;DLL power law
+s(4) = 4.0e-7
+DLL_alpha = 4.4        ;DLL power law
 p(5) = DLL_alpha
-s(5) = 1.0
+s(5) = 2.0
 
-Teh0 = 50.0
+Teh0 = 30.0
 p(6) = Teh0
-s(6) = 20.0
-Teh0_alpha = 1.0 
+s(6) = 10.0
+Teh0_alpha = 0.0*4.34 
 p(7) = Teh0_alpha
-s(7) = 2.0
+s(7) = 1.0
 
 ;otos = 1.8
 ;p(8) = otos
@@ -120,7 +120,7 @@ s(7) = 2.0
 ;print,func(p,mr,peuv)
 ;print,mr,peuv
 
-ftol = 0.01
+ftol = 0.001
 fval = 0.0
 
 rarr = amoeba(ftol,function_value = fval, nmax=150,P0=p,scale=s)

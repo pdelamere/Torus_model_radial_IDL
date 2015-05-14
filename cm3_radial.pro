@@ -1,32 +1,32 @@
 ;-------------------------------------------------------------------
-PRO cm3_radial,prms,mr_r,peuv_peuvh,nelec6,tionavg
-;PRO cm3_radial
+;PRO cm3_radial,prms,mr_r,peuv_peuvh,nelec6,tionavg
+PRO cm3_radial
 ;-------------------------------------------------------------------
 @common
 @params
 
 mr_r = fltarr(12)
 
-fh = prms(0)            ;fh (L = 6.0)
-fh_alpha = prms(1)          ;fh power law
+;fh = prms(0)            ;fh (L = 6.0)
+;fh_alpha = prms(1)          ;fh power law
 
-net_source = prms(2)    ;net source #/s
-net_source_alpha = prms(3)  ;power law for extended neutral source
+;net_source = prms(2)    ;net source #/s
+;net_source_alpha = prms(3)  ;power law for extended neutral source
 
-DLL_0 = prms(4)         ;DLL (L = 6.0)
-DLL_alpha = prms(5)        ;DLL power law
+;DLL_0 = prms(4)         ;DLL (L = 6.0)
+;DLL_alpha = prms(5)        ;DLL power law
 
-Teh0 = prms(6)
-Teh0_alpha = prms(7)
+;Teh0 = prms(6)
+;Teh0_alpha = prms(7)
 
 ;otos = prms(8)
 
-window,0,xsize=600,ysize=800
-window,1,xsize=600,ysize=800
-window,2,xsize=600,ysize=800
+window,0,xsize=800,ysize=800
+window,1,xsize=800,ysize=800
+window,2,xsize=800,ysize=800
 
 read_nl2,s
-
+;save,filename='Voyager_nl2.sav',s
 ;===================================================================================
 ;grid setup
 ;===================================================================================
@@ -34,16 +34,17 @@ read_nl2,s
 
 bufcel = 0
 
-;nintrvl= nbox;38+bufcel
-nintrvl= 38+bufcel
+;nintrvl= 38+bufcel
+nintrvl= nbox+20
 ;nbox = 18
 ;dL0 = 0.25
-;dLarr = fltarr(nintrvl)
-dLarr = fltarr(nbox+bufcel)
+dLarr = fltarr(nintrvl)
+dL = fltarr(nintrvl)
+;dLarr = fltarr(nbox+bufcel)
 dLarr(*) = dL0
 ;dL = [dLarr]
-;dL = [dLarr];,dL0+1.5*(findgen(nintrvl-nbox)/(nintrvl-nbox))^3]
-dL = [dLarr,dL0+1.5*(findgen(nintrvl-nbox)/(nintrvl-nbox))^3]
+;dL = [dLarr,dL0+1.5*(findgen(nintrvl-nbox)/(nintrvl-nbox))^3]
+dL(*) = dL0
 max_theta = 30
 
 n_theta = max_theta*2.0 + 1.0
@@ -73,7 +74,7 @@ Teh0_1 = Teh0
 fc = 1.0-fh
 fh_0 = fh
 fh_1 = fh
-trans = 0.0 ;1.0/(64.0*8.64e4)
+trans = 0.0; 1.0/(64.0*8.64e4)
 trans_1 = trans
 ;net_source = 3.2e27
 net_source_0 = net_source
@@ -96,24 +97,12 @@ ns0 = 50.0      ;initial S neutral density (cm^-3)
 no0 = 200.0     ;initial O neutral density
 nsp0= 150.0        ;initial S+ density
 ns2p0 = 600.0       ;initial S++ density
-ns3p0 = 50.0      ;initial S+++ density
+ns3p0 = 100.0      ;initial S+++ density
 ns4p0 = 0.0
-nop0 = 600.0       ;initial O+ density
-no2p0 = 60.0      ;initial O++ density 
+nop0 = 400.0       ;initial O+ density
+no2p0 = 40.0      ;initial O++ density 
 nsph0 = 0.01
 noph0 = 0.01
-
-;ns0 = 10.      ;initial S neutral density (cm^-3)
-;no0 = 10.    ;initial O neutral density
-;nsp0= 100.        ;initial S+ density
-;ns2p0 = 10.
-;ns3p0 = 10.
-;ns4p0 = 0.0
-;nop0 = 10.
-;no2p0 = 10.
-;nsph0 = 0.01
-;noph0 = 0.01
-
 nel0 = nsp0+2.0*ns2p0+3.0*ns3p0+4.0*ns4p0+nop0+2.0*no2p0+nsph0+noph0   ;initial electron density
 nelh0 = 0.01*nel0
 
@@ -129,6 +118,9 @@ nr = replicate({densr, nsp: 0.0d, ns2p: 0.0d, ns3p: 0.0d, ns4p: 0.0d, nop: 0.0d,
 tr = replicate({tempsr, Tsp: 0.0d, Ts2p: 0.0d, Ts3p: 0.0d, Ts4p: 0.0d, Top: 0.0d, $
                 To2p: 0.0d, Tel: 0.0d, Telh: 0.0d,$
                 Tsph: 0.0d, Toph: 0.0d},nintrvl)
+
+hr = replicate({scale_height, s: 0.0d, o: 0.0d, sp: 0.0d, s2p: 0.0d, s3p: 0.0d, $
+                s4p: 0.0d, op: 0.0d, o2p: 0.0d, el: 0.0d},nintrvl)
 
 mrr = replicate({mix_ratio, sp: 0.0d, s2p: 0.0d, s3p: 0.0d, op: 0.0d, $
                 o2p: 0.0d},nintrvl)
@@ -274,8 +266,8 @@ p = replicate({Power_uv, Puv: 0.0, psp: 0.0, ps2p: 0.0, ps3p: 0.0, $
                          pop: 0.0, po2p: 0.0},ntm+1)
 
 
-h = {scale_heights, s: 0.0, sp: 0.0, s2p: 0.0, s3p: 0.0, s4p:0.0, $
-                              o: 0.0, op: 0.0, o2p: 0.0, el: 0.0}
+;h = {scale_heights, s: 0.0, sp: 0.0, s2p: 0.0, s3p: 0.0, s4p:0.0, $
+;                              o: 0.0, op: 0.0, o2p: 0.0, el: 0.0}
 
 ;h1 = {scale_heights_1, s: 0.0, sp: 0.0, s2p: 0.0, s3p: 0.0, s4p:0.0, $
 ;                              o: 0.0, op: 0.0, o2p: 0.0, el: 0.0}
@@ -288,27 +280,30 @@ h = {scale_heights, s: 0.0, sp: 0.0, s2p: 0.0, s3p: 0.0, s4p:0.0, $
 ;initialize variables
 ;===================================================================================
 
-
-
 whlt = where(Lshell lt 6.0)
 whge = where(Lshell ge 6.0)
 wheq = where(Lshell eq 6.0)
 print,'net_source...',net_source_0 
 net_source_arr = fextend*net_source_0*(Lshell/6.0)^(-net_source_alpha)
-net_source_arr(0) = net_source_arr(0) + flocal*net_source_0
+;print,net_source_arr
+;plot,net_source_arr
 
-mdot_source = (net_source_arr(0)+total(net_source_arr))*20.*1.67e-27
-print,total(net_source_arr)+net_source_arr(0),(net_source_arr(0)+total(net_source_arr))*20.*1.67e-27
-;print,'intgl..',net_source_arr(0)*6.0^net_source_alpha*((20.0)^(-net_source_alpha + 1) - $
-;      6.0^(-net_source_alpha + 1))/(-net_source_alpha + 1)
 
-nr(whge).nsp = nsp0*(Lshell(whge)/6.0)^(-6)
-nr(whge).ns2p = ns2p0*(Lshell(whge)/6.0)^(-6)
-nr(whge).ns3p = ns3p0*(Lshell(whge)/6.0)^(-6)
-nr(whge).ns4p = ns4p0*(Lshell(whge)/6.0)^(-6)
-nr(whge).nop = nop0*(Lshell(whge)/6.0)^(-6)
-nr(whge).no2p = no2p0*(Lshell(whge)/6.0)^(-6)
+net_source_arr(0) = 1.0*net_source_arr(0) + flocal*net_source_0
+;print,net_source_arr(0)
 
+delta_L = Lshell(1)-Lshell(0)
+print,total(net_source_arr)*delta_L,total(net_source_arr)*delta_L*22.*1.67e-27
+print,'integral..',net_source_arr(0)*6.0*((9.0)^(-net_source_alpha + 1) - $
+      1.0^(-net_source_alpha + 1))/(-net_source_alpha + 1)
+
+
+nr(whge).nsp = nsp0*(Lshell(whge)/6.0)^(-10)
+nr(whge).ns2p = ns2p0*(Lshell(whge)/6.0)^(-8)
+nr(whge).ns3p = ns3p0*(Lshell(whge)/6.0)^(-5)
+nr(whge).ns4p = ns4p0*(Lshell(whge)/6.0)^(-5)
+nr(whge).nop = nop0*(Lshell(whge)/6.0)^(-8)
+nr(whge).no2p = no2p0*(Lshell(whge)/6.0)^(-2)
 
 nr.nsph = 0.1
 nr.noph = 0.1
@@ -328,8 +323,10 @@ nr(whhot1).noph = (0.1/1.5)*(Lshell(whhot1)-6.0)
 ;nr(whge).ns = 10.0/(Lshell(whge)-5.0)^3.0
 ;nr(whge).no = 50.0/(Lshell(whge)-5.0)^3.0 + 10.0*exp(-(Lshell(whge)-9.0)^2/4.0)
 
-nr(whge).ns = 1e-10
-nr(whge).no = 1e-10
+;nr(whge).ns = 1e-10
+;nr(whge).no = 1e-10
+nr(*).ns = 0.0
+nr(*).no = 0.0
 
 ;plot_io,Lshell,nr.no
 ;stop
@@ -338,7 +335,6 @@ nr(whge).no = 1e-10
 
 plot_io,Lshell,nr.no,yrange=[0.1,100],/ysty
 oplot,Lshell,nr.ns
-
 
 nr(*).nel =  nr(*).nsp+2.0*nr(*).ns2p+3.0*nr(*).ns3p+4.0*nr(*).ns4p+nr(*).nop+$
              2.0*nr(*).no2p + nr(*).nsph + nr(*).noph
@@ -534,7 +530,9 @@ for ii = 0,nbox-1 do begin
 
 ;    print,'params...',fh,net_source,DLL_0
     cm3_model,n,T,nT,n1,T1,nT1,np,Tp,nTp,r,r1,nar,n1ar,h,h1,hp,$
-              nl,Ec,src,lss,temps,dens,p,Lshell(i),dL(i),mr,ii
+              nl,Ec,src,lss,temps,dens,p,Lshell(i),dL(i),mr
+
+;    print,'sp H...',h.sp,Lshell(ii)
 
     tot_peuv(i) = r.peuv 
     tot_peuvh(i) = r.peuvh
@@ -570,6 +568,14 @@ for ii = 0,nbox-1 do begin
     mrr(i).op = mr(3)
     mrr(i).o2p = mr(4)
     
+    hr(i).s = h.s
+    hr(i).sp = h.sp
+    hr(i).s2p = h.s2p
+    hr(i).s3p = h.s3p
+    hr(i).o = h.o
+    hr(i).op = h.op
+    hr(i).o2p = h.o2p
+
     
 endfor
 
@@ -578,19 +584,14 @@ sti = tr(0).Tsp*nr(0).nsp+tr(0).Ts2p*nr(0).ns2p+tr(0).Ts3p*nr(0).ns3p+tr(0).Top*
 sni = nr(0).nsp+nr(0).ns2p+nr(0).ns3p+nr(0).nop+nr(0).no2p 
 tionavg=sti/sni
 
-get_NL2,nr,tr,nl2,nl2e
+get_NL2,nr,tr,nl2,nl2e,hr,nar
 
 !p.multi=[0,1,1]
 
 for k = 0,nit_trans-1 do begin
    transport_NL2,nl2,nl2e,DLL_0,DLL_alpha
+;   transport_NL2_grad_tot,nl2,nl2e,DLL_0,DLL_alpha
 endfor
-
-
-;for k = 0,nit_trans-1 do begin
-;   transport_flux,nr,tr,DLL_0,DLL_alpha,H,mdot
-;endfor
-
 
 
 ;Schreier
@@ -600,6 +601,7 @@ endfor
 ;tr.Top = nl2e.nop/(nl2.nop*Lshell^(8./3.))
 ;tr.To2p = nl2e.no2p/(nl2.no2p*Lshell^(8./3.))
 
+
 ;Richardson
 tr.Tsp = (nl2e.nsp/(nl2.nsp*Lshell^(2)))^(3./4.)
 tr.Ts2p = (nl2e.ns2p/(nl2.ns2p*Lshell^(2)))^(3./4.)
@@ -607,22 +609,15 @@ tr.Ts3p = (nl2e.ns3p/(nl2.ns3p*Lshell^(2)))^(3./4.)
 tr.Top = (nl2e.nop/(nl2.nop*Lshell^(2)))^(3./4.)
 tr.To2p = (nl2e.no2p/(nl2.no2p*Lshell^(2)))^(3./4.)
 
-tr(nintrvl-1).Tsp = tr(nintrvl-2).Tsp 
-tr(nintrvl-1).Ts2p = tr(nintrvl-2).Ts2p 
-tr(nintrvl-1).Ts3p = tr(nintrvl-2).Ts3p 
-tr(nintrvl-1).Top = tr(nintrvl-2).Top 
-tr(nintrvl-1).To2p = tr(nintrvl-2).To2p 
+;tr(nintrvl-1).Tsp = tr(nintrvl-2).Tsp 
+;tr(nintrvl-1).Ts2p = tr(nintrvl-2).Ts2p 
+;tr(nintrvl-1).Ts3p = tr(nintrvl-2).Ts3p 
+;tr(nintrvl-1).Top = tr(nintrvl-2).Top 
+;tr(nintrvl-1).To2p = tr(nintrvl-2).To2p 
 
-iterate_NL2_to_equator,nl2,nl2e,nr,tr
+iterate_NL2_to_equator,nl2,nl2e,nr,tr,hr
 
-;tr.Tsp = 100.
-;tr.Ts2p = 100.
-;tr.Ts3p = 100.
-;tr.Top = 100.
-;tr.To2p = 100.
-
-
-get_NL2,nr,tr,nl2,nl2e
+get_NL2,nr,tr,nl2,nl2e,hr,nar
 
 ;erase
 !p.multi=[0,3,5]
@@ -631,26 +626,40 @@ get_NL2,nr,tr,nl2,nl2e
 
 wset,0
 
-plot_io,Lshell,nr.ns,title='S',xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty
-plot_io,Lshell,nr.no,title='O',xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty
-plot_io,Lshell,nr.nsp,title='S+',xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty
+plot_io,Lshell,nr.ns,title='S',xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty,$
+        ytitle='n (cm!u-3!n)'
+plot_io,Lshell,nr.no,title='O',xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty,$
+        ytitle='n (cm!u-3!n)'
+plot_io,Lshell,nr.nsp,title='S+',$
+;        xrange=[6,6+(nbox-1)*dL0],$
+;        xrange=[6,25],psym=1,$
+        /xsty,yrange=[0.01,1000],/ysty,$
+        ytitle='n (cm!u-3!n)'
 oplot,Lshell,nr.nsph,linestyle=1
-plot_io,Lshell,nr.ns2p,title='S++',xrange=[6,6+(nbox-1)*dL0],/xsty
-plot_io,Lshell,nr.ns3p,title='S+++',xrange=[6,6+(nbox-1)*dL0],/xsty
-plot_io,Lshell,nr.nop,title='O+',xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty
+plot_io,Lshell,nr.ns2p,title='S++',$
+        ;xrange=[6,6+(nbox-1)*dL0],/xsty,$
+        ytitle='n (cm!u-3!n)'
+plot_io,Lshell,nr.ns3p,title='S+++',$
+        ;xrange=[6,6+(nbox-1)*dL0],/xsty,$
+        ytitle='n (cm!u-3!n)'
+plot_io,Lshell,nr.nop,title='O+',$
+        ;xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[0.01,1000],/ysty,$
+        ytitle='n (cm!u-3!n)'
 oplot,Lshell,nr.noph,linestyle=1
-plot_io,Lshell,nr.no2p,title='O++',xrange=[6,6+(nbox-1)*dL0],/xsty
+plot_io,Lshell,nr.no2p,title='O++',$
+        ;xrange=[6,6+(nbox-1)*dL0],/xsty,$
+        ytitle='n (cm!u-3!n)'
 
 peuv_peuvh = (tot_peuv(0) + tot_peuvh(0)+total(tot_peuv+tot_peuvh))*1.6e-19
 ;peuv_peuvh = total(tot_peuv+tot_peuvh)*1.6e-19
 
-plot,Lshell,tr.Tsp,xrange=[6,10],title='S+',/xsty
-plot,Lshell,tr.Ts2p,xrange=[6,6+(nbox-1)*dL0],title='S++',/xsty
-plot,Lshell,tr.Ts3p,xrange=[6,6+(nbox-1)*dL0],title='S+++',/xsty
-plot,Lshell,tr.Top,xrange=[6,6+(nbox-1)*dL0],title='O+',/xsty
-plot,Lshell,tr.To2p,xrange=[6,6+(nbox-1)*dL0],title='O++',/xsty
-plot,Lshell,tr.Tel,xrange=[6,6+(nbox-1)*dL0],title='elec',/xsty
-plot,Lshell,nr.nel,xrange=[6,6+(nbox-1)*dL0],/xsty
+plot,Lshell,tr.Tsp,title='S+',ytitle='T (eV)';,xrange=[6,25],/xsty
+plot,Lshell,tr.Ts2p,title='S++',ytitle='T (eV)';,xrange=[6,25],/xsty
+plot,Lshell,tr.Ts3p,title='S+++',ytitle='T (eV)';,xrange=[6,25],/xsty
+plot,Lshell,tr.Top,title='O+',ytitle='T (eV)';,xrange=[6,25],/xsty
+plot,Lshell,tr.To2p,title='O++',ytitle='T (eV)';,xrange=[6,25],/xsty
+plot,Lshell,tr.Tel,xrange=[6,6+(nbox-1)*dL0],/xsty,ytitle='T (eV)',title='electrons'
+plot,Lshell,nr.nel,xrange=[6,6+(nbox-1)*dL0],/xsty,ytitle='n (cm!u-3!n)',title='electrons'
 plot_io,Lshell,tot_peuv*1.6e-19,ytitle='Power (W)',$
      xrange=[6,6+(nbox-1)*dL0],/xsty,yrange=[1e8,1e12],/ysty,$
      title='Total Peuv...'+string(peuv_peuvh)+' (W)'
@@ -660,10 +669,13 @@ oplot,Lshell,tot_peuvh*1.6e-19,linestyle=1
 !p.multi=[0,2,3]
 
 wset,1
-plot_io,s.l,s.tot33,yrange=[1e34,8e36],/ysty,xrange=[5,12],/xsty
-oplot,Lshell,nl2.nsp+2.0*nl2.ns2p+3.0*nl2.ns3p+nl2.nop+2.0*nl2.no2p,$
+plot_io,s.l,s.tot33,yrange=[1e34,4e36],/ysty,xrange=[5,12],/xsty
+;oplot,Lshell,nl2.nsp+2.0*nl2.ns2p+3.0*nl2.ns3p+nl2.nop+2.0*nl2.no2p,$
+;   linestyle=1
+oplot,Lshell,nl2.nsp+1.0*nl2.ns2p+1.0*nl2.ns3p+nl2.nop+1.0*nl2.no2p,$
    linestyle=1
-plot_io,s.l,s.s1,title='S+',yrange=[1e34,4e36],/ysty,xrange=[5,12],/xsty
+
+plot_io,s.l,s.s1,title='S+',yrange=[1e33,4e36],/ysty,xrange=[5,12],/xsty
 oplot,Lshell,nl2.nsp,linestyle=1
 plot_io,s.l,s.s2,title='S++',yrange=[1e34,4e36],/ysty,xrange=[5,12],/xsty
 oplot,Lshell,nl2.ns2p,linestyle=1
@@ -696,10 +708,6 @@ plot_io,Lshell,mrr.s3p,linestyle=3,yrange=[0.01,0.4],/ysty,$
    xrange=[6,Lshell(nbox-1)],/xsty,title='S+++'
 oploterr,as_r,s4mix,s4mixerr
 
-;plot_io,Lshell,mdot,title='Mdot'
-;oplot,[!x.crange(0),!x.crange(1)],[mdot_source,mdot_source],linestyle=1
-
-
 mr_r(0) = mrr(0).sp
 mr_r(1) = mrr(12).sp
 mr_r(2) = mrr(0).s2p
@@ -714,7 +722,7 @@ mr_r(10) = mrr(4).sp
 mr_r(11) = mrr(4).s3p
 
 
-save,filename='restart.sav',nr,tr,nl2,nl2e,mrr,s,tot_peuv,tot_peuvh,rr
+save,filename='restart.sav',nr,tr,nl2,nl2e,mrr,s,tot_peuv,tot_peuvh,rr,Lshell
 
 endfor
 
